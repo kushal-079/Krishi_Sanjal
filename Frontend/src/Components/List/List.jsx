@@ -28,9 +28,9 @@ const List = ({ products, onEdit, onDelete }) => {
                                 <tr key={index}>
                                     <td>
                                         <img
-                                            src={item.image ? URL.createObjectURL(item.image) : 'default-image.jpg'}
+                                            src={item.image ? `http://localhost:5000/${item.image}` : 'default-image.jpg'}
                                             alt={item.name}
-                                            className="product-image"
+                                            className="product-image" style={{ width: '50px', height: '50px' }}
                                         />
                                     </td>
                                     <td>{item.name}</td>

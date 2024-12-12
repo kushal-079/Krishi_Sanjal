@@ -2,17 +2,31 @@ const express = require('express');
 const Product = require('../models/product');
 const router = express.Router();
 const verifyToken = require('../middleware/authMiddleware');
+const multer = require ('multer');
+
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, './uploads'); // Set the directory for uploads
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+
+const upload = multer({ storage });
 
 
 router.use(verifyToken);
 
 // Add a new product
-router.post('/add', async (req, res) => {
-  const { name, description, category, price, quantity, nutrition, shelfLife, image } = req.body;
+router.post('/add', upload.single('image'), async (req, res) => {
+  const { name, description, category, price, quantity, nutrition, shelfLife } = req.body;
 
   try {
     const newProduct = new Product({
       farmerId: req.user.userId,
+      image: req.file ? req.file.path : null, // Save the image path
       name,
       description,
       category,
@@ -20,7 +34,7 @@ router.post('/add', async (req, res) => {
       quantity,
       nutrition,
       shelfLife,
-      image,
+      
     });
 
     const savedProduct = await newProduct.save();

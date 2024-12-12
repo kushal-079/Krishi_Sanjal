@@ -100,6 +100,13 @@ const MyProducts = () => {
   const handleAddProduct = async (productData) => {
     try {
       const token = localStorage.getItem('token');
+      const formData = new FormData();
+
+      for (const key in productData) {
+        formData.append(key, productData[key]);
+      }
+
+
       if (editIndex !== null) {
         const response = await axios.put(
           `http://localhost:5000/farmer/my-products/edit/${products[editIndex]._id}`,
@@ -111,9 +118,18 @@ const MyProducts = () => {
         setProducts(updatedProducts);
         setEditIndex(null);
       } else {
-        const response = await axios.post('http://localhost:5000/farmer/my-products/add', productData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.post('http://localhost:5000/farmer/my-products/add', 
+          formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data', // Important for file uploads
+        },
+      }
+        //   productData, {
+        //   headers: { Authorization: `Bearer ${token}` },
+        // }
+        );
         setProducts((prevProducts) => [...prevProducts, response.data.product]);
       }
       setAddPop(false);
