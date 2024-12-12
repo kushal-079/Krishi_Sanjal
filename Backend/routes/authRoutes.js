@@ -127,6 +127,27 @@ const protectConsumerRoute = (req, res, next) => {
   }
 };
 
+// Verify token route
+router.post('/verify-token', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const foundUser = await user.findById(decoded.userId);
+    if (!foundUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const { password, ...userData } = foundUser.toObject(); // Exclude password
+    res.status(200).json({ user: userData });
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid or expired token' });
+  }
+});
+
+
 router.get('/farmer', protectFarmerRoute, (req, res) => {
   res.status(200).json({ message: 'Welcome to the farmer page' });
 });
