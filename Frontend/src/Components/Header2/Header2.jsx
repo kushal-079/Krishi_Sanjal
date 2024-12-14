@@ -23,7 +23,7 @@ const Header2 = () => {
     <div className='Header2'>
        <div className="Header-text">
             <p>Welcome to the Customer Dashboard</p>
-            <button class="update">Buy Products !</button>
+            <button className="update">Buy Products !</button>
         </div>
     </div>
   )

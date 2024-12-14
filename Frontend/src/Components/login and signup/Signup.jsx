@@ -45,6 +45,7 @@ const Signup = ({ onLogin }) => {
 
       const result = await response.json();
       if (response.ok) {
+        localStorage.setItem('token', data.token);
         if (result.user) {
           onLogin(result.user);
           if (result.user.role === 'farmer') {

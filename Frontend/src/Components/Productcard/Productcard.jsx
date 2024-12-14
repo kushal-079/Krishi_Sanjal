@@ -22,7 +22,7 @@ const ProductCard = ({ product }) => {
 
   const handleClick = () => {
     // Navigating to the product details page with product info
-    navigate(`/consumer/product/${product.name}, { state: { product } }`);
+    navigate(`/consumer/product/${product.name}`);
   };
 
   return (

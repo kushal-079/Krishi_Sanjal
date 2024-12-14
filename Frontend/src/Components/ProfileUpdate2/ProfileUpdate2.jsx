@@ -4,16 +4,14 @@ import './ProfileUpdate2.css';
 import Popup2 from '../Popup2/Popup2';
 
 
-const ProfileUpdate2 = ({ username, setUsername, setShowUpdate }) => {
+const ProfileUpdate2 = ({ username, setUsername, setShowUpdate, onProfileUpdate }) => {
   const [profileImage, setProfileImage] = useState(null);
   const fileInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState('account');
   const [accountData, setAccountData] = useState({
-    Firstname: '',
-    Lastname: '',
-    email: '',
+    fullName: '',
     phone: '',
-    username: username,
+    username: '',
     address1: '',
     address2: '',
     address3: '',
@@ -48,35 +46,91 @@ const ProfileUpdate2 = ({ username, setUsername, setShowUpdate }) => {
     setAccountData({ ...accountData, [name]: value });
   };
 
-  const handlePasswordChange = (e) => {
-    const { name, value } = e.target;
-    setPasswordData({ ...passwordData, [name]: value });
-  };
+  
 
-  const saveAccountChanges = () => {
-    setPopupMessage('Account details updated successfully');
-    setShowPopup(true);
-    setTimeout(() => {
-      setShowPopup(false);
-    }, 2000);
+  const saveAccountChanges = async () => {
+    const formData = new FormData();
+    formData.append('fullName', accountData.fullName);
+    formData.append('phoneNumber', accountData.phone);
+    formData.append('username', accountData.username);
+    formData.append('address', accountData.address1); // Combine address fields if needed
+    formData.append('bio', accountData.bio);
+  
+    if (profileImage) {
+      const blob = await fetch(profileImage).then(res => res.blob());
+      formData.append('profileImage', blob, 'profile.jpg');
+    }
+    console.log('hii');
+  
+    try {
+      const response = await fetch('http://localhost:5000/update-profile/consumer', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formData,
+      });
 
-    setUsername(accountData.username);
-  };
-
-  const updatePassword = () => {
-    if (passwordData.newPassword === passwordData.confirmPassword) {
-      setPopupMessage('Password updated successfully!');
+      const data = await response.json();
+      if (response.ok) {
+        setPopupMessage('Account details updated successfully');
+        setShowPopup(true);
+        setTimeout(() => {
+          setShowPopup(false);
+          setShowUpdate(false);
+        }, 2000);
+      
+        setUsername(data.user.username);
+        
+        // Pass updated profile image URL to the parent component
+        const updatedProfileImage = `http://localhost:5000${data.user.profileImage}`;
+        onProfileUpdate(updatedProfileImage); // Call the callback
+        
+        if (data.user.profileImage) {
+          setProfileImage(updatedProfileImage); // Update local state in ProfileUpdate
+        }
+      } else {
+        setPopupMessage(data.message || 'Failed to update account details');
+        setShowPopup(true);
+        setTimeout(() => setShowPopup(false), 2000);
+      }
+      
+    } catch (error) {
+      setPopupMessage('An error occurred while updating account details');
       setShowPopup(true);
-      setTimeout(() => {
-        setShowPopup(false);
-      }, 2000);
+      setTimeout(() => setShowPopup(false), 2000);
+    }
+  };
+
+  const updatePassword = async () => {
+    if (passwordData.newPassword === passwordData.confirmPassword) {
+      try {
+        const response = await fetch('http://localhost:5000/change-password', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({
+            oldPassword: passwordData.oldPassword,
+            newPassword: passwordData.newPassword,
+          }),
+        });
+  
+        const data = await response.json();
+        if (response.ok) {
+          setPopupMessage('Password updated successfully!');
+        } else {
+          setPopupMessage(data.message || 'Failed to update password');
+        }
+      } catch (error) {
+        setPopupMessage('An error occurred while updating password');
+      }
     } else {
       setPopupMessage('Passwords do not match!');
-      setShowPopup(true);
-      setTimeout(() => {
-        setShowPopup(false);
-      }, 2000);
     }
+    setShowPopup(true);
+    setTimeout(() => setShowPopup(false), 2000);
   };
 
   return (
@@ -116,31 +170,17 @@ const ProfileUpdate2 = ({ username, setUsername, setShowUpdate }) => {
             <div className="account-tab">
               <h2>Account Information</h2>
               <div className="row">
-                <input
+              <input
                   type="text"
-                  name="Firstname"
-                  value={accountData.Firstname}
+                  name="fullName"
+                  value={accountData.fullName}
                   onChange={handleAccountChange}
-                  placeholder="First Name"
-                />
-                <input
-                  type="text"
-                  name="Lastname"
-                  value={accountData.Lastname}
-                  onChange={handleAccountChange}
-                  placeholder="Last Name"
+                  placeholder="Full Name"
                 />
               </div>
               <div className='row'>
                 <input
-                  type="email"
-                  name="email"
-                  value={accountData.email}
-                  onChange={handleAccountChange}
-                  placeholder="Email"
-                />
-                <input
-                  type="text"
+                  type="number"
                   name="phone"
                   value={accountData.phone}
                   onChange={handleAccountChange}
@@ -196,21 +236,21 @@ const ProfileUpdate2 = ({ username, setUsername, setShowUpdate }) => {
                 type="password"
                 name="oldPassword"
                 value={passwordData.oldPassword}
-                onChange={handlePasswordChange}
+                onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
                 placeholder="Old Password"
               />
               <input
                 type="password"
                 name="newPassword"
                 value={passwordData.newPassword}
-                onChange={handlePasswordChange}
+                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                 placeholder="New Password"
               />
               <input
                 type="password"
                 name="confirmPassword"
                 value={passwordData.confirmPassword}
-                onChange={handlePasswordChange}
+                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                 placeholder="Confirm Password"
               />
               <button onClick={updatePassword}>Update Password</button>

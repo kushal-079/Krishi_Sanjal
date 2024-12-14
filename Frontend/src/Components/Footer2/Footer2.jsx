@@ -8,11 +8,11 @@ const Footer2 = () => {
         <div className="final">
             <div className="final-img">
                 <img src={assets.logo} alt="Krisi logo"/>
-                <p className="Quote">
+                <div className="Quote">
                 <p className="text1">
                     Uniting farmers and consumers directly,<br/>fostering a sustainable bond rooted in<br/>trust and the
                     shared joy of freshness</p>
-                </p>
+                </div>
             </div>
             <div className="quicklink">
                 <ul>

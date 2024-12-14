@@ -13,6 +13,8 @@ const userSchema = new mongoose.Schema(
     registrationCode: { type: String },  // Used for farmers
     shopName: { type: String },  // Only for farmers
     address: { type: String },  // Only for farmers
+    bio: { type: String, default: null },
+    profileImage: { type: String, default: null }, // Add this field for profile image
   },
   { timestamps: true }
 );
